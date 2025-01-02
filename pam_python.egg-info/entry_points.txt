@@ -1,0 +1,2 @@
+[console_scripts]
+pam = pam.cli:main

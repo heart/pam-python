@@ -1,0 +1,83 @@
+
+from typing import List, Tuple
+from #CLASS_NAME#_service import #CLASS_NAME#
+from pam.tester_task import TesterTask
+from pam.models.request_command import RequestCommand
+from faker import Faker
+import pandas as pd
+import os
+import shutil
+import uuid
+from pam.temp_file_utils import TempfileUtils
+
+def __create_mock_csv(page):
+    fake = Faker()
+    data = {
+        "id": range(1, 11),  # 10 rows
+        "name": [fake.name() for _ in range(10)],
+        "age": [fake.random_int(min=18, max=65) for _ in range(10)],
+        "email": [fake.email() for _ in range(10)],
+        "created_date": [fake.date_time_this_year() for _ in range(10)]
+    }
+    file_name = f"{mock_dir}/mock_data_faker_{page}.csv"
+    df = pd.DataFrame(data)
+    df.to_csv(file_name, index=False)
+    return file_name
+        
+def can_convert_to_int(x):
+    try:
+        int(x)
+        return True
+    except (ValueError, TypeError):
+        return False
+    
+def on_request_data(page) -> Tuple[List[str], bool, str]:
+    page_num = 1
+    if can_convert_to_int(page):
+        page_num = int(page)
+
+    next_page = str(page_num + 1)
+    is_end = False
+    if page_num == MAXPAGE:
+        is_end = True
+        next_page = ""
+
+    mock_csv = __create_mock_csv(page_num)
+    
+    return [mock_csv], is_end, next_page
+
+
+def on_upload_report(report_file):
+    print(f"Uploaded Report {report_file}")
+
+
+def on_upload_result(result_file):
+    print(f"Uploaded {result_file}")
+
+
+
+#---- Constants ----
+MAXPAGE=3
+mock_dir = "./TEMP_TEST_DATA"
+TempfileUtils.temp_base_path = f"{mock_dir}/app/data"
+TempfileUtils.temp_datasource_path = f"{mock_dir}/app/data/data_sources"
+
+
+#---- Create Mock Dir ----
+if os.path.exists(mock_dir):
+    shutil.rmtree(mock_dir)
+os.makedirs(mock_dir)
+
+#---- Create Tester Task ----
+testerTask = TesterTask()
+testerTask.set_on_upload_result(on_upload_result)
+testerTask.set_on_request_data(on_request_data)
+testerTask.set_on_upload_report(on_upload_report)
+
+#---- Create Request Command ----
+token=unique_id = uuid.uuid4()
+req = RequestCommand(token, "start", "-", "-", None, None, None, '#CLASS_NAME#')
+#CLASS_NAME# = #CLASS_NAME#(testerTask, req)
+
+#---- Start Test ----
+testerTask.test_service(#CLASS_NAME#)

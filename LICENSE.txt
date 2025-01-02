@@ -1,0 +1,17 @@
+This software is provided as part of the agreement between 3dsinteractive,co.ltd ("the Provider") and its customers ("the Licensee") under the following conditions:
+
+1. **Usage Rights for Active Customers**:
+   - The Licensee may use, modify, and distribute this software exclusively for their internal operations in connection with the services provided by the Provider.
+   - No disclosure of source code is required while the Licensee maintains active status as a customer.
+
+2. **Termination of Customer Status**:
+   - Upon termination of the agreement between the Provider and the Licensee, the Licensee must either:
+     a. Cease using and delete all copies of this software, or
+     b. Open-source any derived works based on this software under an OSI-approved license.
+
+3. **Restrictions**:
+   - Redistribution of this software to third parties not under the Licensee's operational control is strictly prohibited.
+   - The Licensee may not use this software for competitive purposes against the Provider.
+
+4. **Liability**:
+   - The Provider provides this software "as is" without warranty of any kind, either expressed or implied.

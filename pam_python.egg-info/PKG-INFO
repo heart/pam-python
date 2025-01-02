@@ -1,0 +1,29 @@
+Metadata-Version: 2.1
+Name: pam-python
+Version: 0.1.0
+Summary: Pam Python Library
+Home-page: https://github.com/heart/pam-python
+Author: Narongrit Kanhanoi
+Author-email: narongrit@pams.ai
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: License :: Other/Proprietary License
+Classifier: Operating System :: OS Independent
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Customer Service
+Classifier: Topic :: Software Development :: Libraries
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE.txt
+Requires-Dist: setuptools>=70.0.0
+Requires-Dist: Flask>=3.0.2
+Requires-Dist: aiohttp>=3.11.11
+Requires-Dist: pandas>=2.2.3
+Requires-Dist: Faker>=33.1.0
+Requires-Dist: dask>=2024.12.1
+Requires-Dist: dask-expr>=1.1.21
+
+## License
+
+This library is distributed under a custom license. Active customers of [Your Company Name] may use it as per the terms stated in the `LICENSE.txt` file. For details, contact contact@3dsinteractive.com.

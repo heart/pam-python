@@ -1,0 +1,7 @@
+setuptools>=70.0.0
+Flask>=3.0.2
+aiohttp>=3.11.11
+pandas>=2.2.3
+Faker>=33.1.0
+dask>=2024.12.1
+dask-expr>=1.1.21

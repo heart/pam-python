@@ -1,0 +1,22 @@
+import pandas as pd
+
+def load_csv_file(csv_file):
+    dtype_spec = {
+        'id': 'str'
+    }
+    df = pd.read_csv(csv_file, dtype=dtype_spec, parse_dates=['created_date'])
+    return df
+
+def create_report():
+    report = {
+        "type": "TABLE",
+        "headers": ["test",
+                    "column1",
+                    "column2"
+                    ],
+        "rows": [
+            ["test1", 1, 2],
+            ["test2", 3, 4]
+        ]
+    }
+    return report

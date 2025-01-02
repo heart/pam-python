@@ -1,0 +1,31 @@
+#!/bin/bash
+
+CMD=$1
+APP_VERSION=$2
+IMAGE=$3
+
+function print_howto() {
+    echo "How to use : pamb CMD APP_VERSION TIMESTAMP NAMESPACE OTHER_PARAM1 OTHER_PARAM2 (eg. pamb build_pam 6.0 201906011030 stg)"
+}
+
+if [ "$CMD" = "" ]; then
+    echo -e "CMD cannot be blank"
+    print_howto
+    exit 1
+fi
+
+if [ "$APP_VERSION" = "" ]; then
+    echo -e "APP_VERSION cannot be blank"
+    print_howto
+    exit 1
+fi
+
+if [ "$IMAGE" = "" ]; then
+    echo -e "IMAGE cannot be blank"
+    print_howto
+    exit 1
+fi
+
+source ./pamb-base.sh
+
+eval ${CMD}
