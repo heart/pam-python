@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="pam-python",  
-    version="0.1.0",    
+    version="0.1.1",    
     author="Narongrit Kanhanoi",
     author_email="narongrit@pams.ai",
     description="Pam Python Library",
@@ -30,7 +30,8 @@ setup(
         "pandas>=2.2.3",
         "Faker>=33.1.0",
         "dask>=2024.12.1",
-        "dask-expr>=1.1.21"
+        "dask-expr>=1.1.21",
+        "requests>=2.32.3"
     ],
     entry_points={
         "console_scripts": [

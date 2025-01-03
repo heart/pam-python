@@ -1,14 +1,15 @@
 
-from typing import List, Tuple
-from #CLASS_NAME#_service import #CLASS_NAME#
-from pam.tester_task import TesterTask
-from pam.models.request_command import RequestCommand
-from faker import Faker
-import pandas as pd
 import os
 import shutil
 import uuid
+from typing import List, Tuple
+from faker import Faker
+import pandas as pd
+from pam.tester_task import TesterTask
+from pam.models.request_command import RequestCommand
 from pam.temp_file_utils import TempfileUtils
+#pylint: disable=import-error
+from #MODULE_NAME#_service import #CLASS_NAME#Svc
 
 def __create_mock_csv(page):
     fake = Faker()
@@ -19,7 +20,7 @@ def __create_mock_csv(page):
         "email": [fake.email() for _ in range(10)],
         "created_date": [fake.date_time_this_year() for _ in range(10)]
     }
-    file_name = f"{mock_dir}/mock_data_faker_{page}.csv"
+    file_name = f"{MOCK_DIR}/mock_data_faker_{page}.csv"
     df = pd.DataFrame(data)
     df.to_csv(file_name, index=False)
     return file_name
@@ -58,15 +59,15 @@ def on_upload_result(result_file):
 
 #---- Constants ----
 MAXPAGE=3
-mock_dir = "./TEMP_TEST_DATA"
-TempfileUtils.temp_base_path = f"{mock_dir}/app/data"
-TempfileUtils.temp_datasource_path = f"{mock_dir}/app/data/data_sources"
+MOCK_DIR = "./TEMP_TEST_DATA"
+TempfileUtils.temp_base_path = f"{MOCK_DIR}/app/data"
+TempfileUtils.temp_datasource_path = f"{MOCK_DIR}/app/data/data_sources"
 
 
 #---- Create Mock Dir ----
-if os.path.exists(mock_dir):
-    shutil.rmtree(mock_dir)
-os.makedirs(mock_dir)
+if os.path.exists(MOCK_DIR):
+    shutil.rmtree(MOCK_DIR)
+os.makedirs(MOCK_DIR)
 
 #---- Create Tester Task ----
 testerTask = TesterTask()
@@ -76,8 +77,26 @@ testerTask.set_on_upload_report(on_upload_report)
 
 #---- Create Request Command ----
 token=unique_id = uuid.uuid4()
-req = RequestCommand(token, "start", "-", "-", None, None, None, '#CLASS_NAME#')
-#CLASS_NAME# = #CLASS_NAME#(testerTask, req)
+runtime_parameters = {
+    "some_param": "some_value"
+}
+
+DATA_API="https://localhost.test/api/dataadapter/test"
+RESPONSE_API="https://localhost.test/api/dataadapter/test"
+
+req = RequestCommand(
+                    runtime_parameters=runtime_parameters,
+                    token=token,
+                    cmd="start",
+                    data_api=DATA_API,
+                    response_api=RESPONSE_API,
+                    is_end=None,
+                    next=None,
+                    input_files=None,
+                    service_name='#CLASS_NAME#',
+                )
+
+service_instance = #CLASS_NAME#Svc(testerTask, req)
 
 #---- Start Test ----
-testerTask.test_service(#CLASS_NAME#)
+testerTask.test_service(service_instance)

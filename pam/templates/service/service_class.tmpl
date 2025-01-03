@@ -1,17 +1,22 @@
-import pandas as pd
 from pam.service import Service
 from pam.models.request_command import RequestCommand
 from pam.utils import log
-from functions import *
+#pylint: disable=import-error
+from functions import create_report, load_csv_file
 
+class #CLASS_NAME#Svc(Service):
 
-class #CLASS_NAME#(Service):
-
+    #pylint: disable=useless-parent-delegation
     def __init__(self, task_manager, req):
         super().__init__(task_manager, req)
 
     def on_start(self):
         log("on_start")
+
+        some_param = self.request.runtime_parameters.get("some_param", "")
+        log("Runtime Parameters:")
+        log(f"some_param = {some_param}")
+
         self._request_data()
 
     def on_data_input(self, req: RequestCommand):
@@ -34,9 +39,6 @@ class #CLASS_NAME#(Service):
         df = load_csv_file(file_path)
         df['finished'] = True
         return df
-
-    def __create_report():
-        pass
 
     def on_destroy(self):
         log("on_destroy")

@@ -11,6 +11,7 @@ from pam.utils import log
 from pam.models.request_command import RequestCommand
 from pam.task_manager import TaskManager
 from pam.temp_file_utils import TempfileUtils
+from threading import Lock
 
 
 class Server:
@@ -20,8 +21,9 @@ class Server:
 
     app: Flask
     servicePool = {}
+    _lock = Lock()
 
-    def __init__(self, app):
+    def __init__(self, app: Flask):
         self.task_manager = TaskManager(self)
         self.app = app
         self.register_service()
@@ -37,10 +39,8 @@ class Server:
 
             req, error_request = RequestCommand.parse(request, service_name)
 
-            if error_request != "":
-                response = {
-                    'message': error_request
-                }
+            if error_request:
+                response = {'message': error_request}
                 return self.response_error(response, 400)
 
             response, code = self.handle_service_cmd(service_name, req)
@@ -52,21 +52,18 @@ class Server:
 
         @app.route('/status/<service_name>', methods=['GET'])
         def ping(service_name):
-            # TODO: check the service status
             return self.response_ok({'message': f"OK {service_name}"})
 
-    def get_service_class(self, service_name):
+    def get_service_class(self, service_name: str):
         """
-        Get service class from service name
+        Get service class from service name.
         """
-        if service_name in self.servicePool:
-            return self.servicePool[service_name]
+        with self._lock:
+            return self.servicePool.get(service_name)
 
-        return None
-
-    def handle_service_cmd(self, service_name, req: RequestCommand):
+    def handle_service_cmd(self, service_name: str, req: RequestCommand):
         """
-        Handle all cmd type
+        Handle all command types for a service.
         """
         service_class = self.get_service_class(service_name)
 
@@ -76,95 +73,108 @@ class Server:
                 return self.on_start(service_class, req, service_name)
 
             if req.is_dataset_command():
-
-                log(f"""Request on dataset {service_name} token={
-                    req.token} files={req.input_files}""")
-
+                log(f"Request on dataset {service_name} token={req.token} files={req.input_files}")
                 return self.on_dataset(req)
 
-        response = {'message': f'Service `{service_name}` Notfound. '}
+        response = {'message': f'Service `{service_name}` Not found.'}
         return response, 404
 
-    def on_start(self, service_class, req, service_name):
+    def on_start(self, service_class, req: RequestCommand, service_name: str):
         """
-        start a service
+        Start a service.
         """
         log(f"{service_name} -> on_start")
         self.task_manager.start_service(service_class, req, service_name)
         return {'acknowledge': True}, 200
 
-    def on_dataset(self, req):
+    def on_dataset(self, req: RequestCommand):
         """
-        task_manager handle cmd=dataset
+        TaskManager handles cmd=dataset.
         """
         log(f"{req.service_name} -> on_dataset")
         self.task_manager.on_dataset_input(req)
         return {'acknowledge': True}, 200
 
-    def on_register_service(self, service, end_point):
+    def on_register_service(self, service, end_point: str):
         """
-        register a service
+        Register a service.
         """
-        log(f"register service \"{service}\", endpoint: http://localhost/service/{end_point}")
-        self.servicePool[end_point] = service
+        log(f'Register service "{service}", endpoint: http://localhost/service/{end_point}')
+        with self._lock:
+            self.servicePool[end_point] = service
 
-    def run(self, host='0.0.0.0', port=8000):
+    def run(self, host: str = None, port: int = None):
         """
-        run flask app
+        Run Flask app.
         """
+        host = host or os.getenv('SERVER_HOST', '0.0.0.0')
+        port = port or int(os.getenv('SERVER_PORT', '8000'))
         self.app.run(host=host, port=port)
 
-    def response_error(self, json, code):
+    def response_error(self, json: dict, code: int):
         """
-        create error response with custom http status code
-        """
-        data = jsonify(json)
-        return make_response(data, code)
-
-    def response_ok(self, json, code=200):
-        """
-        create response object with 200OK
+        Create an error response with a custom HTTP status code.
         """
         data = jsonify(json)
         return make_response(data, code)
 
-    def get_service_config(self, package):
+    def response_ok(self, json: dict, code: int = 200):
         """
-        load the service config from service.yml
+        Create a response object with 200 OK.
         """
-        config_path_1 = f'{package}/service.yaml'
-        config_path_2 = f'{package}/service.yml'
-        if os.path.exists(config_path_1) and os.path.isfile(config_path_1):
-            with open(config_path_1, 'r', encoding='utf-8') as file:
-                config = yaml.safe_load(file)
-                return config
-        elif os.path.exists(config_path_2) and os.path.isfile(config_path_2):
-            with open(config_path_2, 'r', encoding='utf-8') as file:
-                config = yaml.safe_load(file)
-                return config
+        data = jsonify(json)
+        return make_response(data, code)
+
+    def load_yaml(self, file_path: str) -> dict | None:
+        """
+        Load a YAML file and return its content.
+        """
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            with open(file_path, 'r', encoding='utf-8') as file:
+                return yaml.safe_load(file)
+        return None
+
+    def get_service_config(self, package: str) -> dict | None:
+        """
+        Load the service config from `service.yaml` or `service.yml`.
+        """
+        for ext in ('yaml', 'yml'):
+            config_path = f'{package}/service.{ext}'
+            if os.path.exists(config_path) and os.path.isfile(config_path):
+                return self.load_yaml(config_path)
         return None
 
     def register_service(self):
         """
-        scan project to register all plugin services
+        Scan the project to register all plugin services with validation.
         """
         packages = find_packages()
         for package in packages:
             config = self.get_service_config(package)
-            if config is not None:
+            if config and self.validate_service_config(config):
                 endpoint = config['endpoint']
                 class_name = config['class']
-                module = importlib.import_module(
-                    f'{package}.{class_name}')
-
                 try:
+                    module = importlib.import_module(f'{package}.{class_name}')
                     class_ = getattr(module, class_name)
-                except AttributeError:
-                    log(
-                        f"Error: Class '{class_name}' not found in module '{module}'.")
-                    class_ = None
+                except (ModuleNotFoundError, AttributeError) as e:
+                    log(f"Error loading service '{class_name}': {e}")
+                    continue
 
                 if endpoint.startswith("/"):
                     endpoint = endpoint[1:]
 
                 self.on_register_service(class_, endpoint)
+            else:
+                log(f"Error: Failed to register service from package '{package}'.")
+
+    def validate_service_config(self, config: dict) -> bool:
+        """
+        Validate the structure of a service configuration.
+        """
+        required_keys = ['endpoint', 'class']
+        missing_keys = [key for key in required_keys if key not in config]
+        if missing_keys:
+            log(f"Error: Missing required keys {missing_keys} in service config.")
+            return False
+        return True
