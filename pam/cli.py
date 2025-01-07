@@ -118,7 +118,9 @@ def init_project():
     cpy("buildcmd/pamb", "pamb")
     cpy("buildcmd/pamb-base.sh", "pamb-base.sh")
     cpy("init/pylintrc.tmpl", ".pylintrc")
-
+    cpy("init/gitignore.tmpl", ".gitignore")
+    cpy("init/dockerignore.tmpl", ".dockerignore")
+    
     if not os.path.exists("requirements.txt"):
         open("requirements.txt", 'a', encoding='utf-8').close()
     
