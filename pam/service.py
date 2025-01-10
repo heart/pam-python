@@ -40,6 +40,11 @@ class Service:
             self.request.service_name, self.request.token, "result_", ".csv"
         )
 
+        dry_run = self.request.runtime_parameters["_dry_run"]
+        if dry_run is not None and dry_run.lower() == "true":
+            log("Dry run mode will not upload results.")
+            return tmp_file_name
+
         try:
             df.to_csv(tmp_file_name, index=False)
             log(f"{self.request.service_name}: Uploading result file: {tmp_file_name}")
@@ -75,6 +80,11 @@ class Service:
             service_name, token, f"report_{report_name}_", '.csv'
         )
 
+        dry_run = self.request.runtime_parameters["_dry_run"]
+        if dry_run is not None and dry_run.lower() == "true":
+            log("Dry run mode will not upload report.")
+            return report_csv_path
+
         try:
             df.to_csv(report_csv_path, index=False)
             log(f"{self.request.service_name}: Uploading report file: {report_csv_path}")
@@ -82,6 +92,8 @@ class Service:
         except Exception as e:
             log(f"Failed to upload report: {e}")
             raise
+        
+        return report_csv_path
 
     def _exit(self) -> None:
         """Signals the task manager to exit the service."""
