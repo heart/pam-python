@@ -137,7 +137,11 @@ class TaskManager(ITaskManager):
 
         def handle_response(response):
             """Logs the response from the API."""
-            log(f"Response from {endpoint}: {response}")
+            try:
+                response_data = response.json()
+            except ValueError:
+                response_data = response.text
+            log(f"Response from {endpoint}: {response_data}")
 
         def api_call_wrapper():
             """Wrapper for the API call to handle response."""
@@ -157,7 +161,11 @@ class TaskManager(ITaskManager):
 
         def handle_upload_response(response):
             """Logs the response after the upload completes."""
-            log(f"Response from upload to {endpoint}: {response}")
+            try:
+                response_data = response.json()
+            except ValueError:
+                response_data = response.text
+            log(f"Response from upload to {endpoint}: {response_data}")
 
         def upload_wrapper():
             """Wrapper for the upload to handle response logging."""
@@ -176,7 +184,11 @@ class TaskManager(ITaskManager):
 
         def handle_report_response(response):
             """Logs the response after the report upload completes."""
-            log(f"Response from report upload to {endpoint}: {response}")
+            try:
+                response_data = response.json()
+            except ValueError:
+                response_data = response.text
+            log(f"Response from report upload to {endpoint}: {response_data}")
 
         def upload_wrapper():
             """Wrapper for the report upload to handle response logging."""
