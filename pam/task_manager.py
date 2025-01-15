@@ -129,31 +129,62 @@ class TaskManager(ITaskManager):
     def service_request_data(self, service: Service, page):
         """
         Makes an asynchronous request for data from a service.
+        Logs the response without blocking the main thread.
         """
         endpoint = service.request.data_api
         token = service.request.token
         json_data = {"page": page, "token": token}
 
+        def handle_response(response):
+            """Logs the response from the API."""
+            log(f"Response from {endpoint}: {response}")
+
+        def api_call_wrapper():
+            """Wrapper for the API call to handle response."""
+            response = self.api.http_post(endpoint, json_data)
+            handle_response(response)
+
         log(f"Requesting Data from: {endpoint}, page: {page}, token={token}")
-        http_thread = threading.Thread(target=self.api.http_post, args=(endpoint, json_data))
+        http_thread = threading.Thread(target=api_call_wrapper)
         http_thread.start()
+
 
     def service_upload_result(self, service: Service, file_path):
         """
-        Uploads a result file asynchronously.
+        Uploads a result file asynchronously and logs the response.
         """
         endpoint = service.request.response_api
+
+        def handle_upload_response(response):
+            """Logs the response after the upload completes."""
+            log(f"Response from upload to {endpoint}: {response}")
+
+        def upload_wrapper():
+            """Wrapper for the upload to handle response logging."""
+            response = self.api.http_upload(endpoint, file_path)
+            handle_upload_response(response)
+
         log(f"Uploading Result to: {endpoint}")
-        http_thread = threading.Thread(target=self.api.http_upload, args=(endpoint, file_path))
+        http_thread = threading.Thread(target=upload_wrapper)
         http_thread.start()
 
     def service_upload_report(self, service: Service, file_path):
         """
-        Uploads a report file asynchronously.
+        Uploads a report file asynchronously and logs the response.
         """
         endpoint = service.request.response_api
+
+        def handle_report_response(response):
+            """Logs the response after the report upload completes."""
+            log(f"Response from report upload to {endpoint}: {response}")
+
+        def upload_wrapper():
+            """Wrapper for the report upload to handle response logging."""
+            response = self.api.http_upload(endpoint, file_path)
+            handle_report_response(response)
+
         log(f"Uploading Report to: {endpoint}")
-        http_thread = threading.Thread(target=self.api.http_upload, args=(endpoint, file_path))
+        http_thread = threading.Thread(target=upload_wrapper)
         http_thread.start()
 
     def service_exit(self, service: Service):
