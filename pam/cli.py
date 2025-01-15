@@ -78,11 +78,11 @@ def cpy(src, dest):
     src_file = os.path.join(template_dir, src)
     shutil.copy(src_file, dest)
 
-def replace_template_content(service_name, file_name):
+def replace_template_content(service_name, class_name, file_name):
     file_path = os.path.join(service_name, file_name)
     with open(file_path, 'r+', encoding='utf-8') as file:
         filedata = file.read()
-        updated_data = filedata.replace('#CLASS_NAME#', to_pascal_case(service_name))
+        updated_data = filedata.replace('#CLASS_NAME#', class_name)
         updated_data = updated_data.replace('#MODULE_NAME#', service_name)
         file.seek(0)  # Move the file pointer to the beginning of the file
         file.write(updated_data)
@@ -99,14 +99,16 @@ def create_service(name):
 
     os.mkdir(name)
     open(os.path.join(name, "__init__.py"), 'a', encoding='utf-8').close()
-    cpy("service/service_class.tmpl", os.path.join(name, name+"_service.py") )
+
+    cpy("service/service_class.tmpl", os.path.join(name, to_pascal_case(name)+"Svc.py") )
+
     cpy("service/service.yaml", os.path.join(name, "service.yaml") )
     cpy("service/functions.tmpl", os.path.join(name, "functions.py") )
     cpy("service/service.test.tmpl", os.path.join(name, name+".test.py") )
 
-    replace_template_content(name, name+"_service.py")
-    replace_template_content(name, "service.yaml")
-    replace_template_content(name, name+".test.py")
+    replace_template_content(name, to_pascal_case(name)+"Svc", to_pascal_case(name)+"Svc.py")
+    replace_template_content(name, to_pascal_case(name)+"Svc", "service.yaml")
+    replace_template_content(name, to_pascal_case(name)+"Svc", name+".test.py")
 
     print(f"Service {name} created.")
     print(f"Run `pam test {name}` to run tests for the service.")
