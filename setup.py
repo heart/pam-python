@@ -31,7 +31,8 @@ setup(
         "Faker>=33.1.0",
         "dask>=2024.12.1",
         "dask-expr>=1.1.21",
-        "requests>=2.32.3"
+        "requests>=2.32.3",
+        "gunicorn>=23.0.0"
     ],
     entry_points={
         "console_scripts": [
