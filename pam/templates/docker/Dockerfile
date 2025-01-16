@@ -8,6 +8,7 @@ ENV DATA_FOLDER=/app/data
 RUN mkdir -p $DATA_FOLDER
 
 RUN pip install --upgrade pip
+RUN pip cache purge
 RUN pip install -r requirements.txt
 
 EXPOSE 8000
