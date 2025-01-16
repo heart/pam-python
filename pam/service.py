@@ -40,7 +40,7 @@ class Service:
             self.request.service_name, self.request.token, "result_", ".csv"
         )
 
-        dry_run = self.request.runtime_parameters["_dry_run"]
+        dry_run = self.request.runtime_parameters["dry_run"]
         if dry_run is not None and dry_run.lower() == "true":
             log("Dry run mode will not upload results.")
             return tmp_file_name
@@ -80,7 +80,7 @@ class Service:
             service_name, token, f"report_{report_name}_", '.csv'
         )
 
-        dry_run = self.request.runtime_parameters["_dry_run"]
+        dry_run = self.request.runtime_parameters["dry_run"]
         if dry_run is not None and dry_run.lower() == "true":
             log("Dry run mode will not upload report.")
             return report_csv_path

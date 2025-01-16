@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="pam-python",  
-    version="0.1.8",    
+    version="0.1.9",    
     author="Narongrit Kanhanoi",
     author_email="narongrit@pams.ai",
     description="Pam Python Library",
