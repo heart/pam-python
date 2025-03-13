@@ -2,7 +2,6 @@ import os
 import sys
 import re
 import shutil
-import glob
 import subprocess
 import pkg_resources 
 
@@ -21,41 +20,8 @@ def main():
         if create_type == "service":
             name = args[2]
             create_service(name)
-    elif cmd == "test":
-        if len(args) < 2:
-            print("Usage: pam test <modulename>")
-            return
-        module_name = args[1]
-        test_module(module_name)
     else:
         print(f"Unknown command: {args.command}")
-
-def test_module(module_name):
-    """Run all test files matching '*.test.py' in the specified module directory."""
-    # Locate all test files in the module directory
-    test_files = glob.glob(f"{module_name}/*.test.py")
-    
-    if not test_files:
-        print(f"Error: No test files found in module '{module_name}' (expected '*.test.py').")
-        return
-    
-    print(f"Found {len(test_files)} test file(s) in '{module_name}':")
-    for test_file in test_files:
-        print(f" - {test_file}")
-    
-    # Run each test file
-    for test_file in test_files:
-        print(f"\nRunning tests in {test_file}...")
-        result = subprocess.run([sys.executable, test_file], capture_output=True, text=True, check=True)
-
-        print("\nTest Output:")
-        print(result.stdout)
-        if result.stderr:
-            print("\nErrors:")
-            print(result.stderr)
-        print("-" * 40)  # Separator for clarity
-
-
 
 def to_pascal_case(input_string: str) -> str:
     """
@@ -122,6 +88,8 @@ def init_project():
     cpy("init/pylintrc.tmpl", ".pylintrc")
     cpy("init/gitignore.tmpl", ".gitignore")
     cpy("init/dockerignore.tmpl", ".dockerignore")
+    cpy("init/run_test.sh", "run_unit_test.sh")
+
     
     if not os.path.exists("requirements.txt"):
         open("requirements.txt", 'a', encoding='utf-8').close()
