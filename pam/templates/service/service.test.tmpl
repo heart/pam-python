@@ -1,7 +1,7 @@
-
 import os
 import shutil
 import uuid
+import unittest
 from typing import List, Tuple
 from faker import Faker
 import pandas as pd
@@ -11,40 +11,43 @@ from pam.temp_file_utils import TempfileUtils
 #pylint: disable=import-error
 from #CLASS_NAME# import #CLASS_NAME#
 
-def __create_mock_csv(page):
-    fake = Faker()
-    data = {
-        "id": range(1, 11),  # 10 rows
-        "name": [fake.name() for _ in range(10)],
-        "age": [fake.random_int(min=18, max=65) for _ in range(10)],
-        "email": [fake.email() for _ in range(10)],
-        "created_date": [fake.date_time_this_year() for _ in range(10)]
-    }
-    file_name = f"{MOCK_DIR}/mock_data_faker_{page}.csv"
-    df = pd.DataFrame(data)
-    df.to_csv(file_name, index=False)
-    return file_name
-        
-def can_convert_to_int(x):
-    try:
-        int(x)
-        return True
-    except (ValueError, TypeError):
-        return False
-    
-def on_request_data(page) -> Tuple[List[str], bool, str]:
-    page_num = 1
-    if can_convert_to_int(page):
-        page_num = int(page)
 
-    next_page = str(page_num + 1)
+# ==================== GLOBAL VARIABLES ====================
+TOTAL_PAGES=3
+MOCK_DIR = "./TEMP_TEST_DATA"
+TempfileUtils.temp_base_path = f"{MOCK_DIR}/app/data"
+TempfileUtils.temp_datasource_path = f"{MOCK_DIR}/app/data/data_sources"
+
+
+# ==================== UTILITY FUNCTIONS ====================
+def create_mock_csv(page, mockDir):
+    fake = Faker()
+    for i in range(page):
+        data = {
+            "id": range(1, 11),  # 10 rows
+            "name": [fake.name() for _ in range(10)],
+            "age": [fake.random_int(min=18, max=65) for _ in range(10)],
+            "email": [fake.email() for _ in range(10)],
+            "created_date": [fake.date_time_this_year() for _ in range(10)]
+        }
+        file_name = f"{mockDir}/mock_data_{i+1}.csv"
+        df = pd.DataFrame(data)
+        df.to_csv(file_name, index=False)
+
+
+def on_request_data(page) -> Tuple[List[str], bool, str]:
+    if page is None or page == "" :
+        page = "1"
+
+    page_num = int(page)
+    next_page = page_num+1
+
     is_end = False
-    if page_num == MAXPAGE:
+    if page_num == TOTAL_PAGES:
         is_end = True
         next_page = ""
 
-    mock_csv = __create_mock_csv(page_num)
-    
+    mock_csv = f"{MOCK_DIR}/mock_data_{page}.csv"
     return [mock_csv], is_end, next_page
 
 
@@ -56,47 +59,45 @@ def on_upload_result(result_file):
     print(f"Uploaded {result_file}")
 
 
-
-#---- Constants ----
-MAXPAGE=3
-MOCK_DIR = "./TEMP_TEST_DATA"
-TempfileUtils.temp_base_path = f"{MOCK_DIR}/app/data"
-TempfileUtils.temp_datasource_path = f"{MOCK_DIR}/app/data/data_sources"
+def createMockDir(mockDir):
+    if os.path.exists(mockDir):
+        shutil.rmtree(mockDir)
+    os.makedirs(mockDir)
 
 
-#---- Create Mock Dir ----
-if os.path.exists(MOCK_DIR):
-    shutil.rmtree(MOCK_DIR)
-os.makedirs(MOCK_DIR)
+# ======================================================================
 
-#---- Create Tester Task ----
-testerTask = TesterTask()
-testerTask.set_on_upload_result(on_upload_result)
-testerTask.set_on_request_data(on_request_data)
-testerTask.set_on_upload_report(on_upload_report)
+class TestService1(unittest.TestCase):
+    
+    def setUp(self):
+        createMockDir(MOCK_DIR)
+        create_mock_csv(TOTAL_PAGES, MOCK_DIR)
 
-#---- Create Request Command ----
-token=unique_id = uuid.uuid4()
-runtime_parameters = {
-    "some_param": "some_value"
-}
+        self.testerTask = TesterTask()
+        self.testerTask.set_on_upload_result(on_upload_result)
+        self.testerTask.set_on_request_data(on_request_data)
+        self.testerTask.set_on_upload_report(on_upload_report)
 
-DATA_API="https://localhost.test/api/dataadapter/test"
-RESPONSE_API="https://localhost.test/api/dataadapter/test"
+    def test_run_service(self):
+        #---- Create Request Command
+        token = uuid.uuid4()
+        runtime_parameters = {
+            "some_param": "some_value"
+        }
+        DATA_API="https://localhost.test/api/dataadapter/test"
+        RESPONSE_API="https://localhost.test/api/dataadapter/test"
 
-req = RequestCommand(
-                    runtime_parameters=runtime_parameters,
-                    token=token,
-                    cmd="start",
-                    data_api=DATA_API,
-                    response_api=RESPONSE_API,
-                    is_end=None,
-                    next=None,
-                    input_files=None,
-                    service_name='#CLASS_NAME#',
-                )
-
-service_instance = #CLASS_NAME#Svc(testerTask, req)
-
-#---- Start Test ----
-testerTask.test_service(service_instance)
+        req = RequestCommand(
+                            runtime_parameters=runtime_parameters,
+                            token=token,
+                            cmd="start",
+                            data_api=DATA_API,
+                            response_api=RESPONSE_API,
+                            is_end=None,
+                            next=None,
+                            input_files=None,
+                            service_name='FinishSvc',
+                        )
+        service_instance = #CLASS_NAME#(self.testerTask, req)
+        #---- Run Service ----
+        self.testerTask.test_service(service_instance)

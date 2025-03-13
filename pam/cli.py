@@ -104,11 +104,11 @@ def create_service(name):
 
     cpy("service/service.yaml", os.path.join(name, "service.yaml") )
     cpy("service/functions.tmpl", os.path.join(name, "functions.py") )
-    cpy("service/service.test.tmpl", os.path.join(name, name+".test.py") )
+    cpy("service/service.test.tmpl", os.path.join(name, f"test_{name}.py") )
 
     replace_template_content(name, to_pascal_case(name)+"Svc", to_pascal_case(name)+"Svc.py")
     replace_template_content(name, to_pascal_case(name)+"Svc", "service.yaml")
-    replace_template_content(name, to_pascal_case(name)+"Svc", name+".test.py")
+    replace_template_content(name, to_pascal_case(name)+"Svc", f"test_{name}.py")
 
     print(f"Service {name} created.")
     print(f"Run `pam test {name}` to run tests for the service.")
