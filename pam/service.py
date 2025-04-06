@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from pathlib import Path
 import json
 from typing import TYPE_CHECKING, Union
 import pandas as pd
@@ -94,6 +95,69 @@ class Service:
             raise
         
         return report_csv_path
+    
+    def _request_sqlite(self, file_name: str = "", is_shared: bool = False) -> None:
+        """Requests last sqlite file that this plugin has uploaded from the last time."""
+        log(f"{self.request.service_name}: Requesting sqlite for file_name={file_name}")
+        
+        endpoint = self.request.sqlite_download
+        token = self.request.token
+        json_data = {"file_name": file_name, "is_shared": is_shared, "token": token}
+
+        # Create a temp file path for the downloaded .sqlite file
+        output_path = TempfileUtils.get_temp_file_name(
+            self.request.service_name,
+            token,
+            f"sqlite_{file_name or 'latest'}_",
+            ".sqlite"
+        )
+
+        # Download SQLite file
+        success = self.task_manager.api.download_sqlite_from_post(endpoint, json_data, output_path)
+
+        if success:
+            log(f"{self.request.service_name}: Successfully downloaded SQLite file to {output_path}")
+        else:
+            log(f"{self.request.service_name}: Failed to download SQLite file.")
+
+
+    def _upload_sqlite(self, file_name: str = "", is_shared: bool = False, sqlite_file: str = "") -> str:
+        """
+        Uploads the result SQLite file to CDP.
+
+        :param file_name: The logical file name being uploaded.
+        :param is_shared: Whether this file should be treated as shared.
+        :param sqlite_file: Path to the SQLite file to upload.
+        :return: The uploaded file name if successful, or empty string if failed.
+        """
+        if not sqlite_file:
+            log(f"{self.request.service_name}: No sqlite file provided for upload.")
+            return ""
+
+        if not Path(sqlite_file).is_file():
+            log(f"{self.request.service_name}: SQLite file does not exist: {sqlite_file}")
+            return ""
+
+        endpoint = self.request.sqlite_upload
+        payload = {
+            "file_name": file_name,
+            "is_shared": str(is_shared).lower(),  # form data values must be string
+            "token": self.request.token
+        }
+
+        try:
+            log(f"{self.request.service_name}: Uploading sqlite file: {sqlite_file} with payload: {payload}")
+            response = self.task_manager.api.http_upload(endpoint, sqlite_file, payload)
+
+            if response and response.ok:
+                log(f"{self.request.service_name}: SQLite file uploaded successfully.")
+                return file_name or Path(sqlite_file).name
+            else:
+                log(f"{self.request.service_name}: Failed to upload sqlite. Status: {response.status_code if response else 'N/A'}")
+                return ""
+        except Exception as e:
+            log(f"{self.request.service_name}: Exception while uploading sqlite: {e}")
+            return ""
 
     def _exit(self) -> None:
         """Signals the task manager to exit the service."""

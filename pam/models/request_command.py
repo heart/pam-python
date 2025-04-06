@@ -31,6 +31,8 @@ class RequestCommand:
     """
     Wraps an HTTP request to simplify access to its parameters and files.
     """
+    sqlite_download: str
+    sqlite_upload: str
     runtime_parameters: dict
     token: str
     cmd: str
@@ -129,6 +131,10 @@ class RequestCommand:
         token = params.pop("token", "")
         cmd = params.pop("cmd", "")
         data_api = params.pop("data", "")
+
+        sqlite_upload = params.pop("sqlite_upload", "")
+        sqlite_download = params.pop("sqlite_download", "")
+
         response_api = params.pop("response", "")
         is_end = RequestCommand.__safe_str_to_bool(params.pop("is_end", "true"))
         next_page = params.pop("next", "")
@@ -148,6 +154,8 @@ class RequestCommand:
                 )
 
         return RequestCommand(
+            sqlite_download=sqlite_download,
+            sqlite_upload=sqlite_upload,
             runtime_parameters=params,
             token=token,
             cmd=cmd,

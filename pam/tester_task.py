@@ -71,6 +71,8 @@ class TesterTask(ITaskManager):
             try:
                 files, is_end, next_page = self.request_data_callback(page)
                 req = RequestCommand(
+                    sqlite_download="",
+                    sqlite_upload="",
                     runtime_parameters={},
                     token=service.request.token,
                     cmd="dataset",
