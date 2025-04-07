@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from pathlib import Path
+from datetime import datetime
 import json
 from typing import TYPE_CHECKING, Union
 import pandas as pd
@@ -95,20 +96,28 @@ class Service:
             raise
         
         return report_csv_path
-    
-    def _request_sqlite(self, file_name: str = "", is_shared: bool = False) -> None:
-        """Requests last sqlite file that this plugin has uploaded from the last time."""
+
+    def _request_sqlite(self, file_name: str = "", is_shared: bool = False) -> str | None:
+        """Requests last sqlite file that this plugin has uploaded from the last time.
+
+        Returns:
+            The file path to the downloaded SQLite file, or None if the download failed.
+        """
         log(f"{self.request.service_name}: Requesting sqlite for file_name={file_name}")
         
         endpoint = self.request.sqlite_download
         token = self.request.token
         json_data = {"file_name": file_name, "is_shared": is_shared, "token": token}
 
+        # Create a unique suffix using current datetime
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        unique_file_name = f"{file_name or 'latest'}_{timestamp}"
+
         # Create a temp file path for the downloaded .sqlite file
         output_path = TempfileUtils.get_temp_file_name(
             self.request.service_name,
             token,
-            f"sqlite_{file_name or 'latest'}_",
+            f"sqlite_{unique_file_name}_",
             ".sqlite"
         )
 
@@ -117,8 +126,10 @@ class Service:
 
         if success:
             log(f"{self.request.service_name}: Successfully downloaded SQLite file to {output_path}")
+            return output_path
         else:
             log(f"{self.request.service_name}: Failed to download SQLite file.")
+            return None
 
 
     def _upload_sqlite(self, file_name: str = "", is_shared: bool = False, sqlite_file: str = "") -> str:
