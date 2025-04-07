@@ -97,7 +97,7 @@ class Service:
         
         return report_csv_path
 
-    def _request_sqlite(self, file_name: str = "", is_shared: bool = False) -> str | None:
+    def _request_sqlite(self, file_name: str = "", is_shared: bool = False) -> str:
         """Requests last sqlite file that this plugin has uploaded from the last time.
 
         Returns:
@@ -129,7 +129,7 @@ class Service:
             return output_path
         else:
             log(f"{self.request.service_name}: Failed to download SQLite file.")
-            return None
+            return output_path
 
 
     def _upload_sqlite(self, file_name: str = "", is_shared: bool = False, sqlite_file: str = "") -> str:
