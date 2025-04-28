@@ -22,6 +22,12 @@ class Service:
         self.request = req
         self.task_manager = task_manager
 
+    def get_adapter_id(self) -> str:
+        """
+        Returns the adapter ID for the service based on the request's response API.
+        """
+        return get_adapter_id(self.request.response_api)
+    
     # == REQUEST DATA ===
     def _request_data(self, page: str = "") -> None:
         """Requests data for the specified page."""
@@ -57,10 +63,15 @@ class Service:
 
         return tmp_file_name
 
-    # == UPLOAD REPORT ===
-    def _upload_report(self, report_name: str, report_json: dict) -> None:
+    def _upload_report(self, report_name: str, report_json: dict, tracker_name: str = "") -> str:
         """
         Uploads a report in JSON format to a temporary file and notifies the task manager.
+        Args:
+            report_name (str): Name of the report.
+            report_json (dict): The report content as a dictionary.
+            tracker_name (str, optional): Tracker name to include in the report. Defaults to empty string.
+        Returns:
+            str: Path to the uploaded report CSV file.
         """
         if not isinstance(report_json, dict):
             raise ValueError("report_json must be a dictionary")
@@ -75,6 +86,7 @@ class Service:
         formatted_report_name = f"data_{report_name}_no_index"
         df = pd.DataFrame({
             'customer': [adapter_id],
+            '_tracker_name': [tracker_name],
             formatted_report_name: [json_string]
         })
 
@@ -96,6 +108,7 @@ class Service:
             raise
         
         return report_csv_path
+
 
     def _request_sqlite(self, file_name: str = "", is_shared: bool = False) -> str:
         """Requests last sqlite file that this plugin has uploaded from the last time.
